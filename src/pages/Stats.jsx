@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { FileText, MessageCircle, Users, BarChart2 } from 'lucide-react'
 import supabase from '../../utils/supabase.js'
 import Card from '../components/Card.jsx'
 
@@ -60,40 +61,47 @@ export default function Stats() {
     {
       label: "Nombre total d'articles",
       value: stats.totalPosts,
-      accent: 'violet',
+      icon: FileText,
     },
     {
       label: 'Nombre moyen de commentaires par article',
       value: stats.avgCommentsPerPost.toFixed(2),
-      accent: 'violet',
+      icon: MessageCircle,
     },
     {
       label: "Nombre moyen d'articles par utilisateur",
       value: stats.avgPostsPerUser.toFixed(2),
-      accent: 'violet',
+      icon: Users,
     },
   ]
 
   return (
     <div>
-      <h1 className="mb-8 text-3xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
+      <h1 className="mb-8 flex items-center gap-2 text-3xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
+        <BarChart2 className="h-8 w-8 shrink-0 text-violet-500 dark:text-violet-400" aria-hidden />
         Statistiques
       </h1>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {statCards.map((stat) => (
-          <Card
-            key={stat.label}
-            padding="lg"
-            className="border-violet-200/50 bg-gradient-to-br from-white to-violet-50/30 dark:border-violet-800/30 dark:from-neutral-800 dark:to-violet-950/20"
-          >
-            <p className="mb-3 text-sm font-medium text-neutral-600 dark:text-neutral-400">
-              {stat.label}
-            </p>
-            <p className="text-4xl font-bold text-violet-600 dark:text-violet-400">
-              {stat.value}
-            </p>
-          </Card>
-        ))}
+        {statCards.map((stat) => {
+          const Icon = stat.icon
+          return (
+            <Card
+              key={stat.label}
+              padding="lg"
+              className="border-violet-200/50 bg-gradient-to-br from-white to-violet-50/30 dark:border-violet-800/30 dark:from-neutral-800 dark:to-violet-950/20"
+            >
+              <div className="mb-3 flex items-center gap-2">
+                <Icon className="h-5 w-5 shrink-0 text-violet-500 dark:text-violet-400" aria-hidden />
+                <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                  {stat.label}
+                </p>
+              </div>
+              <p className="text-4xl font-bold text-violet-600 dark:text-violet-400">
+                {stat.value}
+              </p>
+            </Card>
+          )
+        })}
       </div>
     </div>
   )

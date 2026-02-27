@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import supabase from '../../utils/supabase.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { useToast } from '../contexts/ToastContext.jsx'
 import Button from './Button.jsx'
 import Input from './Input.jsx'
 import Textarea from './Textarea.jsx'
 
 export default function NewPostForm({ onSuccess }) {
   const { user } = useAuth()
+  const { showToast } = useToast()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [error, setError] = useState('')
@@ -26,6 +28,7 @@ export default function NewPostForm({ onSuccess }) {
       if (insertError) throw insertError
       setTitle('')
       setContent('')
+      showToast('Article publié')
       if (onSuccess) onSuccess()
     } catch (err) {
       setError(err.message || 'Erreur lors de la création du post')

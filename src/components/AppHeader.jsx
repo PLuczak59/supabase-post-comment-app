@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { FileText, Home, BarChart2, User, LogOut, LogIn, UserPlus } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Button from './Button.jsx'
 
@@ -22,16 +23,19 @@ export default function AppHeader() {
       <div className="mx-auto flex max-w-4xl items-center justify-between gap-4 px-4 py-3">
         <Link
           to="/"
-          className="text-xl font-bold tracking-tight text-violet-600 no-underline transition-colors hover:text-violet-500 dark:text-violet-400 dark:hover:text-violet-300"
+          className="flex items-center gap-2 text-xl font-bold tracking-tight text-violet-600 no-underline transition-colors hover:text-violet-500 dark:text-violet-400 dark:hover:text-violet-300"
         >
+          <FileText className="h-6 w-6 shrink-0" aria-hidden />
           Posts & Commentaires
         </Link>
 
         <nav className="flex items-center gap-2">
-          <Link to="/" className={navLink}>
+          <Link to="/" className={`flex items-center gap-2 ${navLink}`}>
+            <Home className="h-4 w-4 shrink-0" aria-hidden />
             Accueil
           </Link>
-          <Link to="/stats" className={navLink}>
+          <Link to="/stats" className={`flex items-center gap-2 ${navLink}`}>
+            <BarChart2 className="h-4 w-4 shrink-0" aria-hidden />
             Statistiques
           </Link>
 
@@ -42,9 +46,11 @@ export default function AppHeader() {
               className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-violet-600 text-sm font-semibold text-white shadow-md shadow-violet-600/40 hover:shadow-lg hover:shadow-violet-600/50 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-neutral-950"
               aria-label="Menu utilisateur"
             >
-              {user
-                ? (user.email || '?').charAt(0).toUpperCase()
-                : '⋮'}
+              {user ? (
+                <User className="h-5 w-5 shrink-0" aria-hidden />
+              ) : (
+                <LogIn className="h-5 w-5 shrink-0" aria-hidden />
+              )}
             </button>
             {menuOpen && (
               <div className="absolute right-0 z-40 mt-2 w-56 rounded-2xl border border-neutral-200 bg-white/95 p-2 text-sm shadow-lg backdrop-blur-md dark:border-neutral-700 dark:bg-neutral-900/95">
@@ -72,15 +78,17 @@ export default function AppHeader() {
                         navigate('/')
                         setMenuOpen(false)
                       }}
-                      className="mt-2 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                      className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
                     >
+                      <Home className="h-4 w-4 shrink-0" aria-hidden />
                       <span>Accueil</span>
                     </button>
                     <button
                       type="button"
                       onClick={handleSignOut}
-                      className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
+                      className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30"
                     >
+                      <LogOut className="h-4 w-4 shrink-0" aria-hidden />
                       <span>Se déconnecter</span>
                     </button>
                   </>
@@ -92,8 +100,9 @@ export default function AppHeader() {
                         navigate('/login')
                         setMenuOpen(false)
                       }}
-                      className="flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
                     >
+                      <LogIn className="h-4 w-4 shrink-0" aria-hidden />
                       <span>Connexion</span>
                     </button>
                     <button
@@ -102,8 +111,9 @@ export default function AppHeader() {
                         navigate('/register')
                         setMenuOpen(false)
                       }}
-                      className="mt-1 flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
+                      className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800"
                     >
+                      <UserPlus className="h-4 w-4 shrink-0" aria-hidden />
                       <span>Inscription</span>
                     </button>
                   </>

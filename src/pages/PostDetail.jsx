@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { MessageCircle, Trash2, Send } from 'lucide-react'
 import supabase from '../../utils/supabase.js'
 import { useAuth } from '../contexts/AuthContext.jsx'
+import { useToast } from '../contexts/ToastContext.jsx'
 import Button from '../components/Button.jsx'
 import Card from '../components/Card.jsx'
 import FormCard from '../components/FormCard.jsx'
@@ -11,6 +13,7 @@ export default function PostDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
+  const { showToast } = useToast()
   const [post, setPost] = useState(null)
   const [comments, setComments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -82,6 +85,15 @@ export default function PostDetail() {
     }
   }, [id])
 
+  useEffect(() => {
+    if (post?.title) {
+      document.title = `${post.title} — Posts & Commentaires`
+      return () => {
+        document.title = 'Posts & Commentaires'
+      }
+    }
+  }, [post?.title])
+
   const handleAddComment = async (e) => {
     e.preventDefault()
     if (!user) return
@@ -95,6 +107,7 @@ export default function PostDetail() {
       })
       if (error) throw error
       setCommentContent('')
+      showToast('Commentaire publié')
     } catch (err) {
       setSubmitError(err.message || 'Erreur lors de l\'envoi du commentaire')
     } finally {
@@ -174,6 +187,7 @@ export default function PostDetail() {
                 onClick={handleDeletePost}
                 disabled={deleting === 'post'}
               >
+                <Trash2 className="mr-1.5 h-4 w-4 shrink-0" aria-hidden />
                 {deleting === 'post' ? 'Suppression…' : "Supprimer l'article"}
               </Button>
             </div>
@@ -190,7 +204,8 @@ export default function PostDetail() {
             {deleteError}
           </p>
         )}
-        <h2 className="mb-6 text-xl font-semibold text-neutral-800 dark:text-neutral-200">
+        <h2 className="mb-6 flex items-center gap-2 text-xl font-semibold text-neutral-800 dark:text-neutral-200">
+          <MessageCircle className="h-5 w-5 shrink-0 text-violet-500 dark:text-violet-400" aria-hidden />
           Commentaires
           <span className="ml-2 rounded-full bg-violet-100 px-2.5 py-0.5 text-sm font-medium text-violet-700 dark:bg-violet-900/50 dark:text-violet-300">
             {comments.length}
@@ -213,7 +228,8 @@ export default function PostDetail() {
                 rows={3}
                 required
               />
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" disabled={submitting} className="flex items-center gap-2">
+                <Send className="h-4 w-4 shrink-0" aria-hidden />
                 {submitting ? 'Envoi…' : 'Publier le commentaire'}
               </Button>
             </form>
@@ -241,6 +257,7 @@ export default function PostDetail() {
                       onClick={() => handleDeleteComment(comment.id)}
                       disabled={deleting === comment.id}
                     >
+                      <Trash2 className="mr-1 h-3.5 w-3.5 shrink-0" aria-hidden />
                       {deleting === comment.id ? '…' : 'Supprimer'}
                     </Button>
                   </div>

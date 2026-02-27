@@ -1,146 +1,167 @@
-# Posts & Commentaires (TP noté)
+# Posts & Commentaires
 
-Application React + Supabase : articles et commentaires avec authentification, temps réel et statistiques.
+Application web de blog collaboratif : articles et commentaires en temps réel, authentification et tableau de bord. Idéal pour reprendre le projet, l’adapter ou le déployer.
 
-## Prérequis Supabase
+**Stack :** React 19 · Vite 7 · Tailwind CSS 4 · Supabase (PostgreSQL, Auth, Realtime)
 
-- **Tables** : `posts` (id, user_id, title, content, created_at), `comments` (id, post_id, user_id, content, created_at).
-- **RLS** : lecture pour tous, écriture pour les utilisateurs authentifiés, suppression réservée aux admins (email en `@admin.mydomain.com`).
-- **Realtime** : activer les tables pour la publication `supabase_realtime` :
-  - Dashboard Supabase → Database → Publications → `supabase_realtime` → ajouter les tables `posts` et `comments`.
-  - Ou en SQL :  
-    `ALTER PUBLICATION supabase_realtime ADD TABLE posts, comments;`
+**Démo :** Un exemple du rendu est disponible via le lien suivant 
+---
 
-## Développement
+## Aperçu
+
+- **Articles** — Liste, création (modal + bouton flottant), détail avec date et auteur
+- **Commentaires** — Ajout sous chaque article, mise à jour en temps réel sans rechargement
+- **Authentification** — Inscription, connexion, déconnexion (Supabase Auth)
+- **Rôles** — Utilisateurs connectés peuvent publier ; les admins peuvent supprimer articles et commentaires
+- **Statistiques** — Nombre de posts, moyenne de commentaires par article, moyenne de posts par utilisateur
+- **UX** — Responsive, thème clair/sombre, toasts, squelettes de chargement, titres de page dynamiques
+
+---
+
+## Prérequis
+
+- **Node.js** 18+ (recommandé : 20)
+- Un compte [Supabase](https://supabase.com) (gratuit)
+
+---
+
+## Démarrer le projet
+
+### 1. Cloner et installer
 
 ```bash
+git clone https://github.com/<votre-compte>/supabase-post-comment-app.git
+cd supabase-post-comment-app
 npm install
+```
+
+### 2. Créer un projet Supabase
+
+1. Sur [supabase.com](https://supabase.com), créez un nouveau projet.
+2. Une fois le projet créé, allez dans **Project Settings → API** et notez :
+   - **Project URL**
+   - **anon public** (clé publique)
+
+### 3. Créer les tables et la sécurité (RLS)
+
+Dans l’éditeur SQL de votre projet Supabase, exécutez :
+
+```sql
+-- Table des articles
+CREATE TABLE posts (
+  id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Table des commentaires
+CREATE TABLE comments (
+  id BIGSERIAL PRIMARY KEY,
+  post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Activer RLS
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+
+-- Politiques : lecture pour tous
+CREATE POLICY "posts_select" ON posts FOR SELECT USING (true);
+CREATE POLICY "comments_select" ON comments FOR SELECT USING (true);
+
+-- Politiques : écriture pour les utilisateurs connectés
+CREATE POLICY "posts_insert" ON posts FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "comments_insert" ON comments FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+
+-- Politiques : suppression réservée aux admins (adapter l’email à votre domaine)
+CREATE POLICY "posts_delete_admin" ON posts FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM auth.users
+      WHERE id = auth.uid() AND email LIKE '%@admin.mydomain.com'
+    )
+  );
+CREATE POLICY "comments_delete_admin" ON comments FOR DELETE
+  USING (
+    EXISTS (
+      SELECT 1 FROM auth.users
+      WHERE id = auth.uid() AND email LIKE '%@admin.mydomain.com'
+    )
+  );
+```
+
+Adaptez `@admin.mydomain.com` à l’email que vous utilisez pour les comptes administrateurs.
+
+### 4. Activer Realtime
+
+Dans Supabase : **Database → Replication**. Activez la réplication pour les tables `posts` et `comments` (elles doivent apparaître dans la publication `supabase_realtime`).
+
+### 5. Variables d’environnement
+
+À la racine du projet, créez un fichier `.env` :
+
+```env
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+Remplacez par l’URL et la clé **anon public** de votre projet.
+
+### 6. Lancer l’application
+
+```bash
 npm run dev
 ```
 
-Variables d’environnement (fichier `.env` à la racine) :
-
-```
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=eyJ...
-```
-
-## Déploiement sur GitHub Pages (étape par étape)
-
-### 1. Créer le dépôt sur GitHub
-
-1. Va sur [github.com](https://github.com) et connecte-toi.
-2. Clique sur **"New"** (ou le **+** en haut à droite → **New repository**).
-3. Donne un nom au dépôt, par ex. **`supabase-post-comment-app`** (si tu choisis un autre nom, tu devras l’indiquer à l’étape 7).
-4. Laisse le dépôt **Public**, ne coche pas "Add a README" (tu en as déjà un).
-5. Clique sur **Create repository**.
+Ouvrez [http://localhost:5173](http://localhost:5173). Vous pouvez créer un compte (Authentication → sign up) et commencer à publier des articles.
 
 ---
 
-### 2. Pousser ton code depuis ton PC
+## Scripts disponibles
 
-Ouvre un terminal à la racine du projet et exécute :
+| Commande           | Description                    |
+|--------------------|--------------------------------|
+| `npm run dev`      | Serveur de développement       |
+| `npm run build`    | Build de production            |
+| `npm run preview`  | Prévisualisation du build      |
+| `npm run lint`     | Vérification ESLint            |
 
-```bash
-# Si le projet n’est pas encore un dépôt Git
-git init
 
-# Ajoute tout le projet
-git add .
-git commit -m "Initial commit - app posts & commentaires"
+---
 
-# Remplace TON_USERNAME et TON_REPO par ton compte GitHub et le nom du dépôt
-git remote add origin https://github.com/TON_USERNAME/TON_REPO.git
+## Structure du projet
 
-# Envoie sur la branche main
-git branch -M main
-git push -u origin main
 ```
-
-Exemple si ton compte est `dupont` et le dépôt `supabase-post-comment-app` :
-
-```bash
-git remote add origin https://github.com/dupont/supabase-post-comment-app.git
-git push -u origin main
+supabase-post-comment-app/
+├── src/
+│   ├── components/       # Composants réutilisables (Header, Modal, formulaires…)
+│   ├── contexts/         # AuthContext, ToastContext
+│   ├── pages/            # Home, Login, Register, PostDetail, Stats, Layout
+│   ├── App.jsx
+│   ├── main.jsx
+│   └── index.css
+├── utils/
+│   └── supabase.js       # Client Supabase
+├── .github/workflows/
+│   └── deploy-pages.yml  # CI/CD GitHub Pages
+├── vite.config.js
+└── package.json
 ```
 
 ---
 
-### 3. Ajouter les secrets (clés Supabase)
+## Personnalisation
 
-Sans ces secrets, le build ne pourra pas se connecter à Supabase en production.
-
-1. Sur la page du dépôt GitHub, va dans **Settings** (onglet du dépôt).
-2. Dans le menu de gauche : **Secrets and variables** → **Actions**.
-3. Clique sur **"New repository secret"**.
-4. Crée **deux** secrets, un par un :
-
-   - **Name :** `VITE_SUPABASE_URL`  
-     **Secret :** l’URL de ton projet Supabase (ex. `https://abcdefgh.supabase.co`).  
-     Tu la trouves dans Supabase → **Project Settings** → **API** → **Project URL**.
-
-   - **Name :** `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`  
-     **Secret :** la clé publique (anon key).  
-     Supabase → **Project Settings** → **API** → **Project API keys** → **anon public**.
+- **Admin** : dans le code, le rôle admin est déterminé par un email se terminant par `@admin.mydomain.com` (voir `AuthContext.jsx`). Changez ce suffixe pour l’adapter à votre domaine.
+- **Footer / texte** : modifiez `src/components/AppFooter.jsx` pour le copyright et la ligne de description.
+- **Titre du site** : le titre par défaut est « Posts & Commentaires » (dans `Layout.jsx` et `index.html`).
 
 ---
 
-### 4. Activer GitHub Pages
+## Licence
 
-1. Toujours dans **Settings** du dépôt.
-2. Menu de gauche : **Pages**.
-3. Dans **"Build and deployment"**, section **Source** :
-   - Choisis **"GitHub Actions"** (et non "Deploy from a branch").
-
-Dès qu’un workflow aura tourné avec succès, l’URL du site apparaîtra en haut de cette page.
-
----
-
-### 5. Lancer le déploiement
-
-À chaque **push sur la branche `main`**, le workflow se lance automatiquement.
-
-- Va dans l’onglet **Actions** du dépôt : tu dois voir le workflow **"Deploy on GitHub Pages"** (ou le nom défini dans le fichier).
-- Clique dessus pour voir les jobs **build** puis **deploy**. Si tout est vert, le site est en ligne.
-
-La première fois, attends 1 à 2 minutes après le push.
-
----
-
-### 6. Récupérer l’URL du site
-
-- Dans **Settings** → **Pages**, l’URL s’affiche en vert en haut après un déploiement réussi.
-- Ou directement : **`https://<TON_USERNAME>.github.io/<NOM_DU_REPO>/`**
-
-Exemple : `https://dupont.github.io/supabase-post-comment-app/`
-
----
-
-### 7. Si le nom du dépôt est différent
-
-Si ton dépôt ne s’appelle pas **`supabase-post-comment-app`**, il faut adapter la base de l’app :
-
-1. Ouvre **`vite.config.js`** à la racine du projet.
-2. Remplace `'/supabase-post-comment-app/'` par `'/NOM_DE_TON_REPO/'` (avec les slashs).
-3. Commit et push :
-
-   ```bash
-   git add vite.config.js
-   git commit -m "fix: base URL for GitHub Pages"
-   git push
-   ```
-
----
-
-### En résumé
-
-| Étape | Où | Quoi faire |
-|-------|-----|------------|
-| 1 | GitHub | Créer un nouveau dépôt (ex. `supabase-post-comment-app`) |
-| 2 | Terminal | `git init`, `git add .`, `git commit`, `git remote add origin ...`, `git push -u origin main` |
-| 3 | Repo → Settings → Secrets and variables → Actions | Ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY` |
-| 4 | Repo → Settings → Pages | Source = **GitHub Actions** |
-| 5 | Repo → Actions | Vérifier que le workflow "Deploy on GitHub Pages" passe au vert |
-| 6 | Settings → Pages ou l’URL | Ouvrir `https://<username>.github.io/<repo>/` |
-
-Si le build échoue dans l’onglet Actions, ouvre le job **build** et regarde le message d’erreur (souvent un secret manquant ou mal nommé).
+Projet réaliser dans un cadre pédagogique.

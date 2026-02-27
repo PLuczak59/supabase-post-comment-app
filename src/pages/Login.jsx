@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { LogIn } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext.jsx'
 import Button from '../components/Button.jsx'
 import Card from '../components/Card.jsx'
@@ -31,7 +32,8 @@ export default function Login() {
   return (
     <div className="mx-auto max-w-md">
       <Card padding="lg" className="shadow-lg">
-        <h1 className="mb-8 text-center text-2xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
+        <h1 className="mb-8 flex items-center justify-center gap-2 text-center text-2xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
+          <LogIn className="h-7 w-7 shrink-0 text-violet-500 dark:text-violet-400" aria-hidden />
           Connexion
         </h1>
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
@@ -55,7 +57,8 @@ export default function Login() {
             required
             autoComplete="current-password"
           />
-          <Button type="submit" disabled={loading} size="lg" className="w-full">
+          <Button type="submit" disabled={loading} size="lg" className="flex w-full items-center justify-center gap-2">
+            <LogIn className="h-5 w-5 shrink-0" aria-hidden />
             {loading ? 'Connexion…' : 'Se connecter'}
           </Button>
         </form>

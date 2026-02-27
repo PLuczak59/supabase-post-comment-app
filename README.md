@@ -4,7 +4,7 @@ Application web de blog collaboratif : articles et commentaires en temps réel, 
 
 **Stack :** React 19 · Vite 7 · Tailwind CSS 4 · Supabase (PostgreSQL, Auth, Realtime)
 
-**Démo :** Un exemple du rendu est disponible via le lien suivant 
+**Démo :** Un exemple du rendu est disponible via le [lien suivant](https://pluczak59.github.io/supabase-post-comment-app/) 
 ---
 
 ## Aperçu
